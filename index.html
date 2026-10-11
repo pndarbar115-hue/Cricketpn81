@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PN DARBAR - Cricket Toss Monitor</title>
+
+<link rel="stylesheet" href="professional.css">
+</head>
+<body>
+<header>
+<h1>🏏 PN DARBAR</h1>
+<p>Telegram SMS · Toss Prediction Monitor</p>
+</header>
+<main>
+<div class="cards">
+<div class="card"><div class="small">कुल मैसेज</div><div class="number" id="total">0</div></div>
+<div class="card"><div class="small">टॉस भविष्यवाणियाँ</div><div class="number" id="tosses">0</div></div>
+<div class="card"><div class="small">मैच</div><div class="number" id="matches">0</div></div>
+</div>
+
+<section class="panel">
+<h2>📩 Telegram Toss Message</h2>
+<p class="small">यह फ़ॉर्म टेस्ट मैसेज दर्ज करता है। यह अभी Telegram से अपने आप मैसेज नहीं पढ़ता।</p>
+<label>Telegram चैनल का नाम</label>
+<input id="channel" placeholder="@channel_name">
+<label>मैच का नाम</label>
+<input id="match" placeholder="India vs Pakistan">
+<label>मैसेज / Toss Prediction</label>
+<input id="msg" placeholder="Toss India">
+<button id="add">मैसेज दर्ज करें</button>
+</section>
+
+<section class="panel">
+<h2>🔎 मैसेज फ़िल्टर</h2>
+<input id="search" placeholder="मैच, चैनल या Toss India खोजें">
+<h2>🏏 Upcoming Cricket Matches</h2>
+<p id="upcoming-status" class="small">मैच लोड हो रहे हैं…</p>
+<div id="upcoming-matches"></div>
+<hr>
+<h2>📩 Telegram Toss Messages</h2>
+<p id="telegram-status" class="small">Telegram से कनेक्ट हो रहा है…</p>
+<div id="list"><p class="small">अभी कोई मैसेज दर्ज नहीं है।</p></div>
+</section>
+<p class="small">अभी यह शुरुआती डैशबोर्ड है। इसमें दर्ज टेस्ट मैसेज इसी पेज के खुले रहने तक रहेंगे।</p>
+</main>
+<script>
+
+
+const UPCOMING_API = "http://127.0.0.1:8000/api/cricket/upcoming";
+
+async function loadUpcomingMatches() {
+  const status = document.getElementById("upcoming-status");
+  const box = document.getElementById("upcoming-matches");
+
+  try {
+    status.textContent = "आगामी मैच लोड हो रहे हैं…";
+
+    const response = await fetch(UPCOMING_API);
+    if (!response.ok) throw new Error("HTTP " + response.status);
+
+    const groups = await response.json();
+    const matches = [];
+
+    if (Array.isArray(groups)) {
+      groups.forEach(group => {
+        if (Array.isArray(group.matches)) {
+          group.matches.forEach(match => matches.push(match));
+        }
+      });
+    }
+
+    box.innerHTML = "";
+
+    if (matches.length === 0) {
+      status.textContent = "अभी आगामी मैच उपलब्ध नहीं हैं।";
+      return;
+    }
+
+    matches.forEach(match => {
+      const card = document.createElement("div");
+      card.className = "entry";
+
+      const title = document.createElement("strong");
+      title.textContent =
+        (match.team1?.teamName || "Team 1") + " vs " +
+        (match.team2?.teamName || "Team 2");
+
+      const details = document.createElement("p");
+      details.style.whiteSpace = "pre-line";
+      details.textContent =
+        (match.matchDesc || "") + " · " +
+        (match.matchFormat || "") + "\n" +
+        (match.venue?.ground || "मैदान उपलब्ध नहीं") +
+        (match.venue?.city ? ", " + match.venue.city : "") + "\n" +
+        (match.status || match.state || "समय उपलब्ध नहीं");
+
+      card.appendChild(title);
+      card.appendChild(details);
+      box.appendChild(card);
+    });
+
+    status.textContent = "कुल " + matches.length + " आगामी मैच लोड हुए।";
+  } catch (error) {
+    status.textContent = "मैच लोड नहीं हुए: " + error.message;
+  }
+}
+
+const PN_TELEGRAM_AUTO_LOAD = true;
+const TELEGRAM_API = "http://127.0.0.1:8000/api/instances/1/events";
+const entries=[];
+async function loadTelegramMessages(){
+  const status = document.getElementById("telegram-status");
+  if(status) status.textContent = "Telegram मैसेज लोड हो रहे हैं…";
+  try {
+    const response = await fetch(TELEGRAM_API);
+    if(!response.ok) throw new Error("API HTTP " + response.status);
+    const data = await response.json();
+    entries.length = 0;
+    data.forEach(x => {
+      const msg = x.message_text || "";
+      const matchLine = msg.split(/\r?\n/).find(line => /vs|v\.|toss/i.test(line)) || "Toss Message";
+      entries.push({
+        channel: x.channel_name || "Telegram",
+        match: matchLine.trim().slice(0, 100),
+        msg: msg,
+        time: x.matched_at || "",
+        link: x.message_link || ""
+      });
+    });
+    render();
+    if(status) status.textContent = "Telegram से " + data.length + " मैसेज लोड हुए।";
+  } catch (err) {
+    if(status) status.textContent = "मैसेज नहीं लोड हुए: " + err.message + " — TG Parser सर्वर चालू रखें।";
+  }
+}
+
+const $=id=>document.getElementById(id);
+function render(){
+ const q=$("search").value.toLowerCase();
+ const shown=entries.filter(e=>(e.channel+" "+e.match+" "+e.msg).toLowerCase().includes(q));
+ $("total").textContent=entries.length;
+ $("tosses").textContent=entries.filter(e=>/toss/i.test(e.msg)).length;
+ $("matches").textContent=new Set(entries.map(e=>e.match.toLowerCase())).size;
+ $("list").replaceChildren();
+ if(!shown.length){$("list").append(Object.assign(document.createElement("p"),{className:"small",textContent:"कोई मैसेज नहीं मिला।"}));return;}
+ shown.slice().reverse().forEach(e=>{
+  const d=document.createElement("div");d.className="entry";
+  const b=document.createElement("div");b.className="badge";b.textContent=e.channel+" · "+e.time;
+  const m=document.createElement("strong");m.textContent=e.match;
+  const p=document.createElement("p");p.textContent=e.msg;
+  d.append(b,m,p);
+  if(e.link){const a=document.createElement("a");a.href=e.link;a.target="_blank";a.rel="noopener noreferrer";a.textContent="Telegram पर खोलें";d.append(a);}
+  $("list").append(d);
+ });
+}
+$("add").addEventListener("click",()=>{
+ const channel=$("channel").value.trim(),match=$("match").value.trim(),msg=$("msg").value.trim();
+ if(!channel||!match||!msg){alert("तीनों फ़ील्ड भरें।");return;}
+ entries.push({channel,match,msg,time:new Date().toLocaleString()});
+ $("msg").value="";render();
+});
+$("search").addEventListener("input",render);
+loadTelegramMessages();
+loadUpcomingMatches();
+setInterval(loadUpcomingMatches, 30000);
+setInterval(loadTelegramMessages, 30000);
+</script>
+<script src="pages.js"></script>
+</body>
+</html>
