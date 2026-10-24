@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="professional.css">
 </head>
 <body>
+<div id="pn-space-stars" aria-hidden="true"></div>
 <header>
 <h1>🏏 PN DARBAR</h1>
 <p>Telegram SMS · Toss Prediction Monitor</p>
@@ -47,7 +48,7 @@
 <script>
 
 
-const UPCOMING_API = "http://127.0.0.1:8000/api/cricket/upcoming";
+const UPCOMING_API = "https://tg-parser-b32a.onrender.com/api/cricket/upcoming";
 
 async function loadUpcomingMatches() {
   const status = document.getElementById("upcoming-status");
@@ -62,41 +63,113 @@ async function loadUpcomingMatches() {
     const groups = await response.json();
     const matches = [];
 
-    if (Array.isArray(groups)) {
-      groups.forEach(group => {
-        if (Array.isArray(group.matches)) {
-          group.matches.forEach(match => matches.push(match));
+    function collect(data) {
+      if (Array.isArray(data)) {
+        data.forEach(collect);
+      } else if (data && typeof data === "object") {
+        if (Array.isArray(data.matches)) {
+          data.matches.forEach(collect);
+        } else if (data.team1 || data.team2) {
+          matches.push(data);
         }
-      });
+      }
     }
 
+    collect(groups);
     box.innerHTML = "";
 
-    if (matches.length === 0) {
+    if (!matches.length) {
       status.textContent = "अभी आगामी मैच उपलब्ध नहीं हैं।";
       return;
     }
 
     matches.forEach(match => {
       const card = document.createElement("div");
-      card.className = "entry";
+      card.className = "match-card";
 
-      const title = document.createElement("strong");
-      title.textContent =
-        (match.team1?.teamName || "Team 1") + " vs " +
-        (match.team2?.teamName || "Team 2");
+      const series = document.createElement("div");
+      series.className = "series-name";
+      series.textContent = match.series || match.seriesName || "Cricket Match";
+      card.appendChild(series);
 
-      const details = document.createElement("p");
-      details.style.whiteSpace = "pre-line";
+      const teams = document.createElement("div");
+      teams.className = "teams-row";
+
+      function makeTeam(team) {
+        const item = document.createElement("div");
+        item.className = "team";
+
+        if (team?.image) {
+          const img = document.createElement("img");
+          img.src = team.image;
+          img.alt = "";
+          img.loading = "lazy";
+          img.onerror = () => img.remove();
+          item.appendChild(img);
+        }
+
+        const name = document.createElement("div");
+        name.className = "team-name";
+        name.textContent = typeof team === "string" ? team : (team?.teamName || team?.name || "Team");
+        item.appendChild(name);
+        return item;
+      }
+
+      const team1Name = typeof match.team1 === "string"
+        ? match.team1
+        : (match.team1?.teamName || match.team1?.name || "टीम 1");
+
+      const team2Name = typeof match.team2 === "string"
+        ? match.team2
+        : (match.team2?.teamName || match.team2?.name || "टीम 2");
+
+      teams.appendChild(makeTeam(team1Name));
+
+      const vs = document.createElement("div");
+      vs.className = "vs";
+      vs.textContent = "VS";
+      teams.appendChild(vs);
+
+      teams.appendChild(makeTeam(team2Name));
+      card.appendChild(teams);
+
+      const info = document.createElement("div");
+      info.className = "match-info";
+
+      const format = document.createElement("span");
+      format.className = "match-format";
+      format.textContent = match.match_type || match.matchFormat || match.matchType || "Match";
+      info.appendChild(format);
+
+      let dateTime = "समय उपलब्ध नहीं";
+      if (match.date || match.time) {
+        dateTime = [match.date, match.time, match.timezone || "IST"]
+          .filter(Boolean).join(" ");
+      } else if (match.startDateTimestamp) {
+        const date = new Date(Number(match.startDateTimestamp));
+        if (!Number.isNaN(date.getTime())) {
+          dateTime = date.toLocaleString("en-IN", {
+            timeZone: "Asia/Kolkata",
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true
+          }) + " IST";
+        }
+      }
+
+      const details = document.createElement("div");
       details.textContent =
-        (match.matchDesc || "") + " · " +
-        (match.matchFormat || "") + "\n" +
-        (match.venue?.ground || "मैदान उपलब्ध नहीं") +
+        (match.matchDesc || "") + "\n" +
+        "📅 " + dateTime + "\n" +
+        "🏟️ " + (typeof match.venue === "string" ? match.venue : (match.venue?.ground || "मैदान उपलब्ध नहीं")) +
         (match.venue?.city ? ", " + match.venue.city : "") + "\n" +
-        (match.status || match.state || "समय उपलब्ध नहीं");
+        "स्थिति: " + (match.status || match.state || "उपलब्ध नहीं");
 
-      card.appendChild(title);
-      card.appendChild(details);
+      info.appendChild(details);
+      card.appendChild(info);
       box.appendChild(card);
     });
 
@@ -107,7 +180,7 @@ async function loadUpcomingMatches() {
 }
 
 const PN_TELEGRAM_AUTO_LOAD = true;
-const TELEGRAM_API = "http://127.0.0.1:8000/api/instances/1/events";
+const TELEGRAM_API = "https://tg-parser-b32a.onrender.com/api/instances/1/events";
 const entries=[];
 async function loadTelegramMessages(){
   const status = document.getElementById("telegram-status");
@@ -146,7 +219,7 @@ function render(){
  if(!shown.length){$("list").append(Object.assign(document.createElement("p"),{className:"small",textContent:"कोई मैसेज नहीं मिला।"}));return;}
  shown.slice().reverse().forEach(e=>{
   const d=document.createElement("div");d.className="entry";
-  const b=document.createElement("div");b.className="badge";b.textContent=e.channel+" · "+e.time;
+  const b=document.createElement("div");b.className="badge";b.textContent=e.time;
   const m=document.createElement("strong");m.textContent=e.match;
   const p=document.createElement("p");p.textContent=e.msg;
   d.append(b,m,p);
@@ -167,5 +240,27 @@ setInterval(loadUpcomingMatches, 30000);
 setInterval(loadTelegramMessages, 30000);
 </script>
 <script src="pages.js"></script>
+
+<script>
+/* PN_SHOOTING_STAR_SCRIPT */
+(function () {
+  function shoot() {
+    const sky = document.getElementById("pn-space-stars");
+    if (!sky) return;
+
+    const star = document.createElement("span");
+    star.className = "pn-shooting-star";
+    star.style.top = (5 + Math.random() * 45) + "vh";
+    sky.appendChild(star);
+
+    star.addEventListener("animationend", () => star.remove(), { once: true });
+    setTimeout(() => star.remove(), 2000);
+  }
+
+  setTimeout(shoot, 1000);
+  setInterval(shoot, 3000);
+})();
+</script>
+
 </body>
 </html>

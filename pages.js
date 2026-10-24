@@ -36,8 +36,9 @@ document.addEventListener("DOMContentLoaded", () => {
     live: `
       <section class="panel">
         <h2>🏏 Live Cricket</h2>
-        <p>लाइव स्कोर की सुविधा के लिए सत्यापित लाइव-स्कोर API आवश्यक है।</p>
-        <p class="small">लाइव स्कोर API की उपलब्धता और प्रतिक्रिया जाँचने के बाद यहाँ स्कोर दिखाया जाएगा।</p>
+        <p id="live-page-status" class="small">लाइव मैच लोड हो रहे हैं…</p>
+        <div id="live-page-list"></div>
+        <button type="button" id="live-refresh">🔄 Refresh Live Matches</button>
       </section>`,
     upcoming: `
       <section class="panel">
@@ -104,6 +105,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       if (page.id === "upcoming") loadUpcomingPage();
+      if (page.id === "live") loadLivePage();
       if (page.id === "toss") loadTossPage();
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
@@ -113,36 +115,103 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.body.appendChild(nav);
 
-  async function loadUpcomingPage() {
-    const list = document.getElementById("upcoming-page-list");
-    const status = document.getElementById("upcoming-page-status");
-    status.textContent = "मैच लोड हो रहे हैं…";
+
+  async function loadLivePage() {
+    const list = document.getElementById("live-page-list");
+    const status = document.getElementById("live-page-status");
+    if (!list || !status) return;
+
+    status.textContent = "लाइव मैच लोड हो रहे हैं…";
+    list.replaceChildren();
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/cricket/upcoming");
-      if (!response.ok) throw new Error("API HTTP " + response.status);
+      const response = await fetch("https://tg-parser-1-y99t.onrender.com/api/cricket/live");
+      if (!response.ok) throw new Error("HTTP " + response.status);
+
       const data = await response.json();
-      const groups = Array.isArray(data) ? data : (data.series || data.data || []);
       const matches = [];
 
       function collect(value) {
         if (Array.isArray(value)) {
           value.forEach(collect);
         } else if (value && typeof value === "object") {
-          if (value.matches && Array.isArray(value.matches)) {
-            value.matches.forEach(m => matches.push(m));
-          } else if (value.matchInfo || value.match_id || value.matchId) {
+          if (value.matchInfo) {
             matches.push(value);
-          } else if (!value.seriesName) {
+          } else {
             Object.values(value).forEach(collect);
           }
         }
       }
 
-      collect(groups);
+      collect(data);
 
       if (!matches.length) {
-        status.textContent = "API जुड़ी है, लेकिन मैचों का प्रारूप पहचान नहीं पाया।";
+        status.textContent = "अभी कोई लाइव मैच नहीं मिला।";
+        return;
+      }
+
+      matches.forEach(match => {
+        const info = match.matchInfo || match;
+        const team1 = typeof info.team1 === "string" ? info.team1 : (info.team1?.teamName || info.team1Name || "टीम 1");
+        const team2 = typeof info.team2 === "string" ? info.team2 : (info.team2?.teamName || info.team2Name || "टीम 2");
+        const card = document.createElement("article");
+        card.className = "entry";
+
+        const heading = document.createElement("strong");
+        heading.textContent = team1 + " vs " + team2;
+
+        const detail = document.createElement("p");
+        detail.textContent = [
+          info.matchDesc || info.matchType || "",
+          info.status || match.status || ""
+        ].filter(Boolean).join("\\n");
+
+        card.append(heading, detail);
+        list.appendChild(card);
+      });
+
+      status.textContent = "लाइव मैच: " + matches.length;
+    } catch (error) {
+      status.textContent = "मैच लोड नहीं हुए। API सर्वर और कनेक्शन जाँचें।";
+    }
+  }
+
+  document.addEventListener("click", event => {
+    if (event.target?.id === "live-refresh") loadLivePage();
+  });
+
+  async function loadUpcomingPage() {
+    const list = document.getElementById("upcoming-page-list");
+    const status = document.getElementById("upcoming-page-status");
+    status.textContent = "मैच लोड हो रहे हैं…";
+
+    try {
+      const response = await fetch("https://tg-parser-1-y99t.onrender.com/api/cricket/upcoming");
+      if (!response.ok) throw new Error("API HTTP " + response.status);
+      const data = await response.json();
+
+      // PN DARBAR: fetch saved toss counts
+      let tossMatches = [];
+      try {
+        const tossResponse = await fetch(
+          "https://tg-parser-1-y99t.onrender.com/api/instances/1/toss-counts"
+        );
+        if (tossResponse.ok) {
+          const tossData = await tossResponse.json();
+          tossMatches = Array.isArray(tossData) ? tossData : [];
+        }
+      } catch (e) {
+        console.warn("Toss counts unavailable:", e);
+      }
+
+      // ICC API returns matches directly in data.matches
+      const matches = Array.isArray(data)
+        ? data
+        : (Array.isArray(data.matches) ? data.matches
+        : Array.isArray(data.data) ? data.data : []);
+
+      if (!matches.length) {
+        status.textContent = "ICC API se match nahi mile.";
         return;
       }
 
@@ -152,13 +221,45 @@ document.addEventListener("DOMContentLoaded", () => {
         const team1 = info.team1?.teamName || info.team1 || info.team1Name || "टीम 1";
         const team2 = info.team2?.teamName || info.team2 || info.team2Name || "टीम 2";
         const venue = info.venueInfo?.ground || info.venue || "";
+
+        // Match saved counters using both team names
+        const tracked = tossMatches.find(m =>
+          [m.team1, m.team2].some(t =>
+            String(t || "").toLowerCase() === String(team1).toLowerCase()
+          ) &&
+          [m.team1, m.team2].some(t =>
+            String(t || "").toLowerCase() === String(team2).toLowerCase()
+          )
+        );
+
+        const count1 = tracked
+          ? (String(tracked.team1).toLowerCase() === String(team1).toLowerCase()
+              ? tracked.team1_count : tracked.team2_count)
+          : 0;
+        const count2 = tracked
+          ? (String(tracked.team1).toLowerCase() === String(team2).toLowerCase()
+              ? tracked.team1_count : tracked.team2_count)
+          : 0;
+
         const card = document.createElement("div");
         card.className = "entry";
         const title = document.createElement("strong");
         title.textContent = team1 + " vs " + team2;
         const detail = document.createElement("p");
-        detail.textContent = [info.matchDesc || info.matchType || "", venue, info.status || ""].filter(Boolean).join("\n");
-        card.append(title, detail);
+        detail.textContent = [
+          info.series || "",
+          info.match_type || info.matchType || info.matchDesc || "",
+          "📅 तारीख: " + (info.date || "उपलब्ध नहीं"),
+          "🕒 समय: " + (info.time || "उपलब्ध नहीं") + (info.timezone ? " " + info.timezone : ""),
+          "🏟️ मैदान: " + (venue || "उपलब्ध नहीं"),
+          info.status || ""
+        ].filter(Boolean).join("\n");
+        const tossCount = document.createElement("p");
+        tossCount.textContent =
+          "📨 Toss SMS गिनती: " + team1 + " " + count1 +
+          " | " + team2 + " " + count2;
+
+        card.append(title, detail, tossCount);
         list.appendChild(card);
       });
       status.textContent = "मैच: " + matches.length;
@@ -174,7 +275,7 @@ document.addEventListener("DOMContentLoaded", () => {
     target.textContent = "Telegram संदेश लोड हो रहे हैं…";
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/instances/1/events");
+      const response = await fetch("https://tg-parser-1-y99t.onrender.com/api/instances/1/events");
       if (!response.ok) throw new Error("HTTP " + response.status);
 
       const data = await response.json();
@@ -192,7 +293,7 @@ document.addEventListener("DOMContentLoaded", () => {
         card.className = "entry";
 
         const heading = document.createElement("strong");
-        heading.textContent = "📨 " + (message.channel_name || "Telegram चैनल");
+        heading.textContent = "📨 Toss SMS";
 
         const body = document.createElement("p");
         body.style.whiteSpace = "pre-wrap";
