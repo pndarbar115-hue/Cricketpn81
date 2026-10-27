@@ -183,77 +183,174 @@ document.addEventListener("DOMContentLoaded", () => {
   async function loadUpcomingPage() {
     const list = document.getElementById("upcoming-page-list");
     const status = document.getElementById("upcoming-page-status");
+    if (!list || !status) return;
+
     status.textContent = "मैच लोड हो रहे हैं…";
 
+    const api = "https://tg-parser-1-y99t.onrender.com";
+    const instance = api + "/api/instances/1";
+
+    function getTeam(value) {
+      return String(value?.teamName || value || "").trim();
+    }
+
+    function parseStartTime(info) {
+      const date = String(info.date || "").trim();
+      const time = String(info.time || "").trim();
+      const dm = date.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+      const tm = time.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+
+      if (!dm || !tm) return null;
+
+      let hour = Number(tm[1]) % 12;
+      if (tm[3].toUpperCase() === "PM") hour += 12;
+
+      const iso =
+        dm[3] + "-" + dm[2].padStart(2, "0") + "-" +
+        dm[1].padStart(2, "0") + "T" +
+        String(hour).padStart(2, "0") + ":" + tm[2] +
+        ":00+05:30";
+
+      const timestamp = Date.parse(iso);
+      return Number.isFinite(timestamp) ? { iso, timestamp } : null;
+    }
+
+    function sameTeams(a, b) {
+      const x = String(a || "").trim().toLowerCase();
+      const y = String(b || "").trim().toLowerCase();
+      return x && y && x === y;
+    }
+
     try {
-      const response = await fetch("https://tg-parser-1-y99t.onrender.com/api/cricket/upcoming");
-      if (!response.ok) throw new Error("API HTTP " + response.status);
+      const response = await fetch(api + "/api/cricket/upcoming");
+      if (!response.ok) throw new Error("Upcoming API HTTP " + response.status);
+
       const data = await response.json();
-
-      // PN DARBAR: fetch saved toss counts
-      let tossMatches = [];
-      try {
-        const tossResponse = await fetch(
-          "https://tg-parser-1-y99t.onrender.com/api/instances/1/toss-counts"
-        );
-        if (tossResponse.ok) {
-          const tossData = await tossResponse.json();
-          tossMatches = Array.isArray(tossData) ? tossData : [];
-        }
-      } catch (e) {
-        console.warn("Toss counts unavailable:", e);
-      }
-
-      // ICC API returns matches directly in data.matches
       const matches = Array.isArray(data)
         ? data
         : (Array.isArray(data.matches) ? data.matches
         : Array.isArray(data.data) ? data.data : []);
 
       if (!matches.length) {
-        status.textContent = "ICC API se match nahi mile.";
+        status.textContent = "अभी आगामी मैच नहीं मिले।";
         return;
       }
 
+      // पहले से सेव मैच लाएँ, ताकि डुप्लिकेट न बनें।
+      let trackedMatches = [];
+      try {
+        const trackedResponse = await fetch(instance + "/tracked-matches");
+        if (trackedResponse.ok) {
+          const saved = await trackedResponse.json();
+          trackedMatches = Array.isArray(saved) ? saved : [];
+        }
+      } catch (e) {
+        console.warn("Saved matches unavailable:", e);
+      }
+
+      // केवल भविष्य के मैच सेव करें।
+      for (const match of matches) {
+        const info = match.matchInfo || match;
+        const team1 = getTeam(info.team1);
+        const team2 = getTeam(info.team2);
+        const start = parseStartTime(info);
+
+        if (!team1 || !team2 || !start || start.timestamp <= Date.now()) continue;
+        if (String(info.status || "").toLowerCase().includes("completed")) continue;
+
+        const alreadySaved = trackedMatches.some(m => {
+          const samePair =
+            (sameTeams(m.team1, team1) && sameTeams(m.team2, team2)) ||
+            (sameTeams(m.team1, team2) && sameTeams(m.team2, team1));
+          const savedTime = Date.parse(m.start_time || "");
+          return samePair && Number.isFinite(savedTime) &&
+            Math.abs(savedTime - start.timestamp) < 60000;
+        });
+
+        if (alreadySaved) continue;
+
+        try {
+          const added = await fetch(instance + "/tracked-matches", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              team1: team1,
+              team2: team2,
+              start_time: start.iso
+            })
+          });
+
+          if (added.ok) {
+            trackedMatches.push({
+              team1, team2, start_time: start.iso
+            });
+          } else {
+            console.warn("Match registration failed:", team1, team2, added.status);
+          }
+        } catch (e) {
+          console.warn("Match registration error:", e);
+        }
+      }
+
+      // मैच सेव करने के बाद ताज़ा toss counts लाएँ।
+      let tossMatches = [];
+      try {
+        const tossResponse = await fetch(instance + "/toss-counts");
+        if (tossResponse.ok) {
+          const savedCounts = await tossResponse.json();
+          tossMatches = Array.isArray(savedCounts) ? savedCounts : [];
+        }
+      } catch (e) {
+        console.warn("Toss counts unavailable:", e);
+      }
+
       list.innerHTML = "";
+
       matches.forEach(match => {
         const info = match.matchInfo || match;
-        const team1 = info.team1?.teamName || info.team1 || info.team1Name || "टीम 1";
-        const team2 = info.team2?.teamName || info.team2 || info.team2Name || "टीम 2";
+        const team1 = getTeam(info.team1) || info.team1Name || "टीम 1";
+        const team2 = getTeam(info.team2) || info.team2Name || "टीम 2";
         const venue = info.venueInfo?.ground || info.venue || "";
 
-        // Match saved counters using both team names
-        const tracked = tossMatches.find(m =>
-          [m.team1, m.team2].some(t =>
-            String(t || "").toLowerCase() === String(team1).toLowerCase()
-          ) &&
-          [m.team1, m.team2].some(t =>
-            String(t || "").toLowerCase() === String(team2).toLowerCase()
-          )
-        );
+        const start = parseStartTime(info);
+        const tracked = tossMatches.find(m => {
+          const samePair =
+            (sameTeams(m.team1, team1) && sameTeams(m.team2, team2)) ||
+            (sameTeams(m.team1, team2) && sameTeams(m.team2, team1));
+          const savedTime = Date.parse(m.start_time || "");
+          return samePair && start && Number.isFinite(savedTime) &&
+            Math.abs(savedTime - start.timestamp) < 60000;
+        });
 
-        const count1 = tracked
-          ? (String(tracked.team1).toLowerCase() === String(team1).toLowerCase()
-              ? tracked.team1_count : tracked.team2_count)
-          : 0;
-        const count2 = tracked
-          ? (String(tracked.team1).toLowerCase() === String(team2).toLowerCase()
-              ? tracked.team1_count : tracked.team2_count)
-          : 0;
+        let count1 = 0;
+        let count2 = 0;
+
+        if (tracked) {
+          count1 = sameTeams(tracked.team1, team1)
+            ? Number(tracked.team1_count || 0)
+            : Number(tracked.team2_count || 0);
+          count2 = sameTeams(tracked.team1, team2)
+            ? Number(tracked.team1_count || 0)
+            : Number(tracked.team2_count || 0);
+        }
 
         const card = document.createElement("div");
         card.className = "entry";
+
         const title = document.createElement("strong");
         title.textContent = team1 + " vs " + team2;
+
         const detail = document.createElement("p");
         detail.textContent = [
           info.series || "",
           info.match_type || info.matchType || info.matchDesc || "",
           "📅 तारीख: " + (info.date || "उपलब्ध नहीं"),
-          "🕒 समय: " + (info.time || "उपलब्ध नहीं") + (info.timezone ? " " + info.timezone : ""),
+          "🕒 समय: " + (info.time || "उपलब्ध नहीं") +
+            (info.timezone ? " " + info.timezone : ""),
           "🏟️ मैदान: " + (venue || "उपलब्ध नहीं"),
           info.status || ""
         ].filter(Boolean).join("\n");
+
         const tossCount = document.createElement("p");
         tossCount.textContent =
           "📨 Toss SMS गिनती: " + team1 + " " + count1 +
@@ -262,9 +359,12 @@ document.addEventListener("DOMContentLoaded", () => {
         card.append(title, detail, tossCount);
         list.appendChild(card);
       });
-      status.textContent = "मैच: " + matches.length;
+
+      status.textContent = "मैच: " + matches.length +
+        " | Toss tracking अपडेट किया गया";
     } catch (error) {
-      status.textContent = "मैच लोड नहीं हुए। TG Parser API चल रही है या नहीं जाँचें।";
+      console.error("Upcoming matches error:", error);
+      status.textContent = "मैच लोड नहीं हुए। इंटरनेट या Parser API जाँचें।";
     }
   }
 

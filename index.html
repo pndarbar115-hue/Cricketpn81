@@ -1,266 +1,156 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="hi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PN DARBAR - Cricket Toss Monitor</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#050606">
+<title>PN DARBAR — Toss & Cricket Analysis</title>
+<style>
+:root{--g:#ffd34e;--g2:#ffad00;--bg:#050707;--p:#080e10;--line:#745414;--blue:#24bfff;--green:#00d98b;--muted:#a7b5bb}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(ellipse at 50% -20%,#49330b 0,#0a0d0d 43%,#030404 100%);color:#f5f7f8;font:14px/1.45 system-ui,Arial,sans-serif}
+header{border-bottom:1px solid var(--g2);background:#050606ed;box-shadow:0 3px 22px #ffb80030;position:sticky;top:0;z-index:9}.head{max-width:1400px;margin:auto;display:flex;align-items:center;justify-content:space-between;padding:10px 18px;gap:12px}.brand{display:flex;align-items:center;gap:11px}.logo{height:51px;width:48px;display:grid;place-items:center;background:linear-gradient(140deg,#604300,#0b0b09);border:2px solid var(--g);clip-path:polygon(50% 0,96% 17%,88% 72%,50% 100%,12% 72%,4% 17%);color:var(--g);font-weight:1000;font-size:19px;text-shadow:0 0 12px #ffc400}.brand h1{font: bold clamp(20px,3vw,34px) Georgia,serif;color:var(--g);letter-spacing:1px;margin:0;text-shadow:0 0 16px #ffb80050}.brand small{font-size:9px;letter-spacing:1.2px;color:#d0d8db;display:block}.headnote{color:#ffe28b;font-style:italic;font-weight:700}.statusbox{border:1px solid #765819;border-radius:12px;padding:8px 12px;color:#dce5e7;font-size:11px}.green{color:var(--green)}.layout{max-width:1400px;margin:auto;display:grid;grid-template-columns:150px 1fr;gap:14px;padding:14px}.side{border:1px solid #725318;border-radius:14px;background:#050909;padding:12px;display:flex;flex-direction:column;gap:8px}.side button{background:transparent;border:1px solid transparent;color:#e8edef;text-align:left;padding:12px 9px;border-radius:9px;font-weight:700;cursor:pointer}.side button:hover,.side button.active{background:linear-gradient(90deg,#ffdc68,#ffb900);color:#111;box-shadow:0 0 18px #ffb80035}.side .sidebrand{margin-top:auto;text-align:center;color:var(--g);font:italic bold 20px Georgia;padding:18px 0}.hero{border:1px solid #8a641b;border-radius:14px;min-height:130px;padding:22px 25px;background:linear-gradient(90deg,#070909 0%,#080b0be8 50%,#241805b0 100%),radial-gradient(ellipse at 88% 45%,#b07a13,#0a0c0c 55%);position:relative;overflow:hidden;box-shadow:inset 0 0 30px #ffbd240d}.hero:after{content:"🏏";font-size:100px;position:absolute;right:30px;bottom:-20px;opacity:.7;filter:drop-shadow(0 0 15px #ffbd24)}.eyebrow{color:var(--g);letter-spacing:2px;font-size:10px;font-weight:800}.hero h2{font: bold clamp(28px,4vw,44px) Georgia,serif;color:#ffdf75;margin:5px 0;text-shadow:0 0 20px #ffb80055}.hero p{margin:0;color:#e4e9eb;max-width:70%}.chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.chip{border:1px solid #755718;border-radius:20px;padding:5px 10px;color:#ffdf7a;background:#080d0d;font-size:11px}.sectionhead{display:flex;align-items:center;justify-content:space-between;margin:18px 2px 9px}.sectionhead h3{margin:0;font-size:15px}.sectionhead b{color:var(--g);margin-right:7px}.sectionhead small{color:var(--blue)}.fixtures{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}.fixture,.panel{border:1px solid #755719;border-radius:12px;background:linear-gradient(150deg,#101819,#050909 80%);box-shadow:0 6px 18px #0008,inset 0 1px #fff08}.fixture{padding:12px}.date{text-align:center;color:#c6d2d6;font-size:11px;border-bottom:1px solid #243235;padding-bottom:8px}.fixture .teams{display:flex;align-items:center;justify-content:center;gap:8px;margin:12px 0;font-weight:800}.flag{font-size:22px}.venue{font-size:10px;color:#bdc9cd;min-height:28px}.goldbtn{display:block;width:100%;border:0;border-radius:20px;background:linear-gradient(90deg,#ffe071,#ffb600);padding:8px;color:#151000;font-weight:900;margin-top:10px;cursor:pointer}.maincols{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(240px,.8fr);gap:12px;margin-top:13px}.panel{padding:13px;min-width:0}.panelhead{display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:1px solid #5f481a;padding-bottom:10px;margin-bottom:10px}.panelhead h3{margin:0;color:#ffda65;font-size:19px}.panelhead p{margin:2px 0 0;color:#d2dcdf;font-size:11px}.refresh{border:1px solid #6d5119;background:#0a1010;color:var(--g);padding:8px;border-radius:8px;cursor:pointer}.tosscontent{display:grid;grid-template-columns:1fr 1.1fr;gap:12px}.versus{border:1px solid #1b6e67;border-radius:12px;padding:14px;background:radial-gradient(ellipse at 0 50%,#073a57,#071012 45%,#032f20);display:grid;grid-template-columns:1fr 30px 1fr;align-items:center;text-align:center;gap:4px}.teamcount{border:1px solid #277b95;border-radius:10px;padding:10px 4px;background:#061219c9}.teamcount.pk{border-color:#00a76d;background:#031a13d9}.bigflag{font-size:38px}.teamcount h4{margin:5px 0;font-size:14px}.teamcount small{color:#d2dfe2}.count{display:block;font-size:34px;color:var(--g);font-weight:1000;line-height:1.2}.vs{color:var(--g);font:bold italic 22px Georgia}.tablewrap{overflow:auto;border:1px solid #23424a;border-radius:9px}.tabletitle{font-weight:800;color:#e5edf0;margin:0 0 8px}.tabletitle span{color:var(--g)}table{width:100%;border-collapse:collapse;font-size:11px;white-space:nowrap}th{background:#0b2429;color:#c9e9f1;text-align:left}th,td{padding:9px 7px;border-bottom:1px solid #1e373d}td strong{color:var(--g)}.empty{text-align:center;color:var(--muted);padding:20px 8px}.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}.stat{border:1px solid #24444b;border-radius:9px;padding:13px;background:#071012;text-align:center}.stat small{display:block;color:#c3d0d4}.stat strong{display:block;color:var(--g);font-size:26px}.quick{margin-top:10px}.quickrow{display:flex;justify-content:space-between;gap:8px;padding:11px 4px;border-bottom:1px solid #203236}.quickrow:last-child{border:0}.quickrow span{color:#d4e0e3}.quickrow strong{color:var(--g)}.features{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:11px}.feature{border:1px solid #604a1d;border-radius:9px;text-align:center;padding:10px 5px;color:#e9e0c2;font-size:11px}.feature b{display:block;color:var(--g);font-size:18px}.feed{margin-top:12px}.feedrow{display:grid;grid-template-columns:1.1fr 1fr 80px;gap:8px;padding:9px 4px;border-bottom:1px solid #203236;font-size:11px}.feedrow:last-child{border:0}.feedrow strong{color:var(--g)}.foot{max-width:1400px;margin:0 auto 14px;padding:15px 20px;border:1px solid #5f4819;border-radius:14px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;color:#9eafb4;font-size:11px;background:#050707}.foot b{color:var(--g);font: bold 20px Georgia}.message{font-size:11px;color:var(--muted);margin-top:10px}.hide{display:none}
+@media(max-width:1000px){.layout{grid-template-columns:1fr}.side{flex-direction:row;overflow:auto}.side button{white-space:nowrap}.side .sidebrand{display:none}.fixtures{grid-template-columns:repeat(2,1fr)}.headnote{display:none}}
+@media(max-width:650px){.head{padding:8px 10px}.statusbox{display:none}.layout{padding:9px}.hero{padding:18px}.hero:after{right:-12px;font-size:78px;opacity:.35}.hero p{max-width:95%}.fixtures{grid-template-columns:1fr 1fr}.maincols{grid-template-columns:1fr}.tosscontent{grid-template-columns:1fr}.features{grid-template-columns:repeat(2,1fr)}.feedrow{grid-template-columns:1fr 1fr 60px}.brand small{font-size:7px}.logo{width:39px;height:43px}.brand h1{font-size:21px}}
 
-<link rel="stylesheet" href="professional.css">
+#team-counts{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:10px}#team-counts .teamcount{min-width:0}#team-counts h4{overflow-wrap:anywhere}
+</style>
 </head>
 <body>
-<div id="pn-space-stars" aria-hidden="true"></div>
-<header>
-<h1>🏏 PN DARBAR</h1>
-<p>Telegram SMS · Toss Prediction Monitor</p>
-</header>
-<main>
-<div class="cards">
-<div class="card"><div class="small">कुल मैसेज</div><div class="number" id="total">0</div></div>
-<div class="card"><div class="small">टॉस भविष्यवाणियाँ</div><div class="number" id="tosses">0</div></div>
-<div class="card"><div class="small">मैच</div><div class="number" id="matches">0</div></div>
-</div>
-
-<section class="panel">
-<h2>📩 Telegram Toss Message</h2>
-<p class="small">यह फ़ॉर्म टेस्ट मैसेज दर्ज करता है। यह अभी Telegram से अपने आप मैसेज नहीं पढ़ता।</p>
-<label>Telegram चैनल का नाम</label>
-<input id="channel" placeholder="@channel_name">
-<label>मैच का नाम</label>
-<input id="match" placeholder="India vs Pakistan">
-<label>मैसेज / Toss Prediction</label>
-<input id="msg" placeholder="Toss India">
-<button id="add">मैसेज दर्ज करें</button>
+<header><div class="head"><div class="brand"><div class="logo">PN</div><div><h1>PN DARBAR</h1><small>CRICKET ANALYSIS | TOSS | PITCH | STATS</small></div></div><div class="headnote">♛ Har Match ka Asli Analysis</div><div class="statusbox">📅 <span id="today">आज</span><br><span class="green">● Auto Refresh</span></div></div></header>
+<div class="layout">
+<aside class="side"><button class="active" onclick="jump('top',this)">⌂ Home</button><button onclick="jump('telegram',this)">➤ Telegram Toss</button><button onclick="jump('upcoming',this)">▦ Upcoming</button><button onclick="jump('summary',this)">▥ Toss Summary</button><button onclick="jump('recent',this)">☷ Recent Messages</button><div class="sidebrand">♛ PN DARBAR<br><small>Better Data<br>Better Decisions</small></div></aside>
+<main id="top">
+<section class="hero"><div class="eyebrow">✦ YOUR CRICKET COMMAND CENTER</div><h2>UPCOMING MATCHES</h2><p>आगामी मैच, टेलीग्राम टॉस की गिनती और क्रिकेट विश्लेषण — एक ही जगह।</p><div class="chips"><span class="chip">📅 Upcoming Fixtures</span><span class="chip">📨 Telegram Toss</span><span class="chip">🔄 हर 30 सेकंड अपडेट</span></div></section>
+<div class="sectionhead" id="upcoming"><h3><b>▦</b> UPCOMING MATCHES</h3><small id="up-status">मैच लोड हो रहे हैं…</small></div>
+<section class="fixtures" id="fixtures"><div class="fixture"><div class="empty">आगामी मैच लोड हो रहे हैं…</div></div></section>
+<div class="maincols">
+<section class="panel" id="telegram"><div class="panelhead"><div><h3>➤ TELEGRAM TOSS</h3><p>टेलीग्राम संदेशों से मिली टीमों की गिनती</p></div><button class="refresh" onclick="loadAll()">⟳ Refresh</button></div>
+<div class="tosscontent"><div class="versus" id="team-counts"><div class="teamcount"><div class="bigflag">🏏</div><h4>टीम</h4><small>Toss Count</small><strong class="count">0</strong></div></div>
+<div><p class="tabletitle">मैच टॉस सारांश <span>• Live</span></p><div class="tablewrap"><table><thead><tr><th>मैच</th><th>टॉस टीम</th><th>कुल गिनती</th></tr></thead><tbody id="toss-table"><tr><td colspan="3" class="empty">Telegram डेटा लोड हो रहा है…</td></tr></tbody></table></div></div></div>
+<div class="features"><div class="feature"><b>⌕</b>मैच पहचान</div><div class="feature"><b>♙</b>टॉस टीम पहचान</div><div class="feature"><b>⟳</b>ऑटो अपडेट</div><div class="feature"><b>✓</b>दोहराव नियंत्रण*</div></div>
+<div class="message" id="tg-status">Telegram सर्वर से कनेक्ट हो रहा है…</div><div class="message">*एक ही संदेश की दोहरी गिनती रोकने के लिए संदेश की ID उपलब्ध होनी चाहिए। यह पेज फिलहाल हर प्राप्त रिकॉर्ड को एक संदेश मानता है।</div>
 </section>
-
-<section class="panel">
-<h2>🔎 मैसेज फ़िल्टर</h2>
-<input id="search" placeholder="मैच, चैनल या Toss India खोजें">
-<h2>🏏 Upcoming Cricket Matches</h2>
-<p id="upcoming-status" class="small">मैच लोड हो रहे हैं…</p>
-<div id="upcoming-matches"></div>
-<hr>
-<h2>📩 Telegram Toss Messages</h2>
-<p id="telegram-status" class="small">Telegram से कनेक्ट हो रहा है…</p>
-<div id="list"><p class="small">अभी कोई मैसेज दर्ज नहीं है।</p></div>
-</section>
-<p class="small">अभी यह शुरुआती डैशबोर्ड है। इसमें दर्ज टेस्ट मैसेज इसी पेज के खुले रहने तक रहेंगे।</p>
-</main>
+<aside>
+<div class="panel" id="summary"><div class="panelhead"><h3>▥ Toss Summary</h3></div><div class="stats"><div class="stat"><small>Total Toss Messages</small><strong id="total-toss">0</strong></div><div class="stat"><small>Matches Found</small><strong id="total-matches">0</strong></div></div></div>
+<div class="panel quick"><div class="panelhead"><h3>🏅 Quick Stats</h3></div><div id="team-count-list"></div><div class="quickrow"><span>📨 Telegram Records</span><strong id="total-records">0</strong></div><div class="quickrow"><span>🔄 Refresh</span><strong>30 sec</strong></div></div>
+<div class="panel quick"><div class="eyebrow">✦ PN DARBAR</div><h3 style="color:var(--g);font: bold 23px Georgia">TOSS ANALYSIS</h3><p>Better Data • Better Prediction</p><div class="chips"><span class="chip">#TossSeMatchTak</span></div></div>
+</aside></div>
+<section class="panel feed" id="recent"><div class="panelhead"><div><h3>☷ RECENT TOSS MESSAGES</h3><p>हाल में मिले टेलीग्राम संदेश</p></div><span class="chip" id="feed-total">0 संदेश</span></div><div id="feed"><div class="empty">अभी कोई संदेश नहीं मिला।</div></div></section>
+<div class="message">नोट: यह डैशबोर्ड आपके सर्वर से डेटा लोड करने की कोशिश करता है। API उपलब्ध न होने पर असली मैच/टॉस डेटा नहीं दिखेगा।</div>
+</main></div>
+<footer class="foot"><div><b>♛ PN DARBAR</b><br>Cricket Analysis Dashboard</div><div>© 2026 PN DARBAR • Cricket Platform</div><div>Made with ❤️ for Cricket Fans</div></footer>
 <script>
-
-
-const UPCOMING_API = "https://tg-parser-b32a.onrender.com/api/cricket/upcoming";
-
-async function loadUpcomingMatches() {
-  const status = document.getElementById("upcoming-status");
-  const box = document.getElementById("upcoming-matches");
-
-  try {
-    status.textContent = "आगामी मैच लोड हो रहे हैं…";
-
-    const response = await fetch(UPCOMING_API);
-    if (!response.ok) throw new Error("HTTP " + response.status);
-
-    const groups = await response.json();
-    const matches = [];
-
-    function collect(data) {
-      if (Array.isArray(data)) {
-        data.forEach(collect);
-      } else if (data && typeof data === "object") {
-        if (Array.isArray(data.matches)) {
-          data.matches.forEach(collect);
-        } else if (data.team1 || data.team2) {
-          matches.push(data);
-        }
-      }
-    }
-
-    collect(groups);
-    box.innerHTML = "";
-
-    if (!matches.length) {
-      status.textContent = "अभी आगामी मैच उपलब्ध नहीं हैं।";
-      return;
-    }
-
-    matches.forEach(match => {
-      const card = document.createElement("div");
-      card.className = "match-card";
-
-      const series = document.createElement("div");
-      series.className = "series-name";
-      series.textContent = match.series || match.seriesName || "Cricket Match";
-      card.appendChild(series);
-
-      const teams = document.createElement("div");
-      teams.className = "teams-row";
-
-      function makeTeam(team) {
-        const item = document.createElement("div");
-        item.className = "team";
-
-        if (team?.image) {
-          const img = document.createElement("img");
-          img.src = team.image;
-          img.alt = "";
-          img.loading = "lazy";
-          img.onerror = () => img.remove();
-          item.appendChild(img);
-        }
-
-        const name = document.createElement("div");
-        name.className = "team-name";
-        name.textContent = typeof team === "string" ? team : (team?.teamName || team?.name || "Team");
-        item.appendChild(name);
-        return item;
-      }
-
-      const team1Name = typeof match.team1 === "string"
-        ? match.team1
-        : (match.team1?.teamName || match.team1?.name || "टीम 1");
-
-      const team2Name = typeof match.team2 === "string"
-        ? match.team2
-        : (match.team2?.teamName || match.team2?.name || "टीम 2");
-
-      teams.appendChild(makeTeam(team1Name));
-
-      const vs = document.createElement("div");
-      vs.className = "vs";
-      vs.textContent = "VS";
-      teams.appendChild(vs);
-
-      teams.appendChild(makeTeam(team2Name));
-      card.appendChild(teams);
-
-      const info = document.createElement("div");
-      info.className = "match-info";
-
-      const format = document.createElement("span");
-      format.className = "match-format";
-      format.textContent = match.match_type || match.matchFormat || match.matchType || "Match";
-      info.appendChild(format);
-
-      let dateTime = "समय उपलब्ध नहीं";
-      if (match.date || match.time) {
-        dateTime = [match.date, match.time, match.timezone || "IST"]
-          .filter(Boolean).join(" ");
-      } else if (match.startDateTimestamp) {
-        const date = new Date(Number(match.startDateTimestamp));
-        if (!Number.isNaN(date.getTime())) {
-          dateTime = date.toLocaleString("en-IN", {
-            timeZone: "Asia/Kolkata",
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: true
-          }) + " IST";
-        }
-      }
-
-      const details = document.createElement("div");
-      details.textContent =
-        (match.matchDesc || "") + "\n" +
-        "📅 " + dateTime + "\n" +
-        "🏟️ " + (typeof match.venue === "string" ? match.venue : (match.venue?.ground || "मैदान उपलब्ध नहीं")) +
-        (match.venue?.city ? ", " + match.venue.city : "") + "\n" +
-        "स्थिति: " + (match.status || match.state || "उपलब्ध नहीं");
-
-      info.appendChild(details);
-      card.appendChild(info);
-      box.appendChild(card);
-    });
-
-    status.textContent = "कुल " + matches.length + " आगामी मैच लोड हुए।";
-  } catch (error) {
-    status.textContent = "मैच लोड नहीं हुए: " + error.message;
-  }
-}
-
-const PN_TELEGRAM_AUTO_LOAD = true;
-const TELEGRAM_API = "https://tg-parser-b32a.onrender.com/api/instances/1/events";
-const entries=[];
-async function loadTelegramMessages(){
-  const status = document.getElementById("telegram-status");
-  if(status) status.textContent = "Telegram मैसेज लोड हो रहे हैं…";
-  try {
-    const response = await fetch(TELEGRAM_API);
-    if(!response.ok) throw new Error("API HTTP " + response.status);
-    const data = await response.json();
-    entries.length = 0;
-    data.forEach(x => {
-      const msg = x.message_text || "";
-      const matchLine = msg.split(/\r?\n/).find(line => /vs|v\.|toss/i.test(line)) || "Toss Message";
-      entries.push({
-        channel: x.channel_name || "Telegram",
-        match: matchLine.trim().slice(0, 100),
-        msg: msg,
-        time: x.matched_at || "",
-        link: x.message_link || ""
-      });
-    });
-    render();
-    if(status) status.textContent = "Telegram से " + data.length + " मैसेज लोड हुए।";
-  } catch (err) {
-    if(status) status.textContent = "मैसेज नहीं लोड हुए: " + err.message + " — TG Parser सर्वर चालू रखें।";
-  }
-}
-
+const BASE="https://tg-parser-b32a.onrender.com";
+const UPCOMING_API=BASE+"/api/cricket/upcoming";
+const TELEGRAM_API=BASE+"/api/instances/1/events";
 const $=id=>document.getElementById(id);
-function render(){
- const q=$("search").value.toLowerCase();
- const shown=entries.filter(e=>(e.channel+" "+e.match+" "+e.msg).toLowerCase().includes(q));
- $("total").textContent=entries.length;
- $("tosses").textContent=entries.filter(e=>/toss/i.test(e.msg)).length;
- $("matches").textContent=new Set(entries.map(e=>e.match.toLowerCase())).size;
- $("list").replaceChildren();
- if(!shown.length){$("list").append(Object.assign(document.createElement("p"),{className:"small",textContent:"कोई मैसेज नहीं मिला।"}));return;}
- shown.slice().reverse().forEach(e=>{
-  const d=document.createElement("div");d.className="entry";
-  const b=document.createElement("div");b.className="badge";b.textContent=e.time;
-  const m=document.createElement("strong");m.textContent=e.match;
-  const p=document.createElement("p");p.textContent=e.msg;
-  d.append(b,m,p);
-  if(e.link){const a=document.createElement("a");a.href=e.link;a.target="_blank";a.rel="noopener noreferrer";a.textContent="Telegram पर खोलें";d.append(a);}
-  $("list").append(d);
- });
-}
-$("add").addEventListener("click",()=>{
- const channel=$("channel").value.trim(),match=$("match").value.trim(),msg=$("msg").value.trim();
- if(!channel||!match||!msg){alert("तीनों फ़ील्ड भरें।");return;}
- entries.push({channel,match,msg,time:new Date().toLocaleString()});
- $("msg").value="";render();
-});
-$("search").addEventListener("input",render);
-loadTelegramMessages();
-loadUpcomingMatches();
-setInterval(loadUpcomingMatches, 30000);
-setInterval(loadTelegramMessages, 30000);
-</script>
-<script src="pages.js"></script>
+$("today").textContent=new Date().toLocaleDateString("hi-IN",{day:"2-digit",month:"short",year:"numeric"});
+function jump(id,btn){$(id)?.scrollIntoView({behavior:"smooth"});document.querySelectorAll(".side button").forEach(x=>x.classList.remove("active"));btn.classList.add("active")}
+function arrFrom(data){return Array.isArray(data)?data:Array.isArray(data?.matches)?data.matches:Array.isArray(data?.data)?data.data:[]}
+function matchInfo(m){return m.matchInfo||m}
+function teamName(t){return typeof t==="object"?(t.teamName||t.name||""):(t||"")}
+function matchTeams(m){const i=matchInfo(m);return [teamName(i.team1)||i.team1Name||"टीम 1",teamName(i.team2)||i.team2Name||"टीम 2"]}
+function dateText(m){const i=matchInfo(m);return i.startDate||i.matchDate||i.date||i.startTime||i.matchStartTimestamp||"तारीख़/समय उपलब्ध नहीं"}
+function venueText(m){const i=matchInfo(m);return i.venueInfo?.ground||i.venue?.ground||i.venue||i.ground||"मैदान उपलब्ध नहीं"}
+async function loadUpcoming(){const status=$("up-status");try{const r=await fetch(UPCOMING_API);if(!r.ok)throw Error("HTTP "+r.status);const matches=arrFrom(await r.json());$("fixtures").innerHTML="";if(!matches.length){$("fixtures").innerHTML='<div class="fixture"><div class="empty">अभी आगामी मैच नहीं मिले।</div></div>';status.textContent="0 मैच";return}matches.slice(0,8).forEach(m=>{const [a,b]=matchTeams(m);const card=document.createElement("article");card.className="fixture";card.innerHTML='<div class="date"></div><div class="teams"><span class="flag">🏏</span><span></span><span class="flag">🏏</span></div><div class="venue"></div><button class="goldbtn">Analysis ›</button>';card.querySelector(".date").textContent=dateText(m);card.querySelectorAll(".teams span")[1].textContent=a+" vs "+b;card.querySelector(".venue").textContent="📍 "+venueText(m);card.querySelector("button").onclick=()=>alert(a+" vs "+b+"\\nमैच विश्लेषण का डेटा जोड़ना बाकी है।");$("fixtures").append(card)});status.textContent="कुल "+matches.length+" मैच लोड हुए।"}catch(e){status.textContent="मैच API उपलब्ध नहीं: "+e.message;$("fixtures").innerHTML='<div class="fixture"><div class="empty">मैच लोड नहीं हुए। सर्वर/API जाँचें।</div></div>'}}
 
-<script>
-/* PN_SHOOTING_STAR_SCRIPT */
-(function () {
-  function shoot() {
-    const sky = document.getElementById("pn-space-stars");
-    if (!sky) return;
-
-    const star = document.createElement("span");
-    star.className = "pn-shooting-star";
-    star.style.top = (5 + Math.random() * 45) + "vh";
-    sky.appendChild(star);
-
-    star.addEventListener("animationend", () => star.remove(), { once: true });
-    setTimeout(() => star.remove(), 2000);
+function findToss(msg){
+  for(const line of String(msg||"").split(/\r?\n/)){
+    let m = line.match(/^\s*(?:[^\w\s]*\s*)?toss\s*(?:prediction\s*)?(?:winner\s*)?(?:is\s*|[:：\-➠➡️]+\s*|\s+)([A-Za-z][A-Za-z .&'-]{0,40}?)(?:\s*[✅✔️🏏🪙].*)?$/i);
+    if(m){
+      let n=m[1].trim()
+        .replace(/\s+(won|wins|has|at|and|elected|will|to bat|to bowl|prediction|update|result).*$/i,"")
+        .replace(/[.!,:;]+$/,"").trim();
+      if(n && !/^(winner|prediction|update|result)$/i.test(n)) return n;
+    }
+    m=line.match(/([A-Za-z][A-Za-z .&'-]{1,35})\s+won the toss\b/i);
+    if(m) return m[1].trim();
   }
+  return "";
+}
+function findMatch(msg){
+  return String(msg||"").split(/\r?\n/).map(x=>x.trim()).find(x=>/\bvs\.?\b|\bv\b/i.test(x))||"मैच का नाम नहीं मिला";
+}
+function norm(s){return String(s||"").toLowerCase().replace(/[^a-z0-9]/g,"")}
+function teamFlag(s){
+  const f={india:"🇮🇳",pakistan:"🇵🇰",australia:"🇦🇺",england:"🏴",southafrica:"🇿🇦",newzealand:"🇳🇿",srilanka:"🇱🇰",bangladesh:"🇧🇩",westindies:"🏝️",afghanistan:"🇦🇫",nepal:"🇳🇵",usa:"🇺🇸",ireland:"🇮🇪",zimbabwe:"🇿🇼",oman:"🇴🇲",uae:"🇦🇪"};
+  return f[norm(s)]||"🏏";
+}
+function renderToss(data){
+  const records=[];
+  for(const x of data){
+    const msg=x.message_text||x.text||x.message||"";
+    const winner=findToss(msg);
+    if(!winner) continue;
 
-  setTimeout(shoot, 1000);
-  setInterval(shoot, 3000);
-})();
+    const time=x.matched_at||x.created_at||x.date||"";
+    const channel=String(x.channel_id||"");
+    const normalized=msg.toLowerCase().replace(/\s+/g," ").trim();
+    const stamp=Date.parse(time);
+
+    const duplicate=records.some(r =>
+      r.channel===channel &&
+      r.normalized===normalized &&
+      Number.isFinite(stamp) &&
+      Number.isFinite(r.stamp) &&
+      Math.abs(stamp-r.stamp)<=120000
+    );
+
+    if(duplicate) continue;
+
+    records.push({
+      msg,winner,match:findMatch(msg),time,
+      channel,normalized,stamp
+    });
+  }
+  const counts={};
+  records.forEach(x=>{
+    const k=norm(x.winner);
+    if(k){if(!counts[k]) counts[k]={name:x.winner,count:0};counts[k].count++;}
+  });
+  const teams=Object.values(counts).sort((a,b)=>b.count-a.count);
+  const cards=$("team-counts");cards.innerHTML="";
+  teams.forEach(t=>{
+    const card=document.createElement("div");card.className="teamcount";
+    const flag=document.createElement("div");flag.className="bigflag";flag.textContent=teamFlag(t.name);
+    const title=document.createElement("h4");title.textContent=t.name.toUpperCase();
+    const label=document.createElement("small");label.textContent="Toss Count";
+    const count=document.createElement("strong");count.className="count";count.textContent=t.count;
+    card.append(flag,title,label,count);cards.append(card);
+  });
+  if(!teams.length) cards.textContent="अभी Toss टीम नहीं मिली।";
+  const list=$("team-count-list");list.innerHTML="";
+  teams.forEach(t=>{
+    const row=document.createElement("div");row.className="quickrow";
+    const name=document.createElement("span");name.textContent=teamFlag(t.name)+" "+t.name+" Toss";
+    const count=document.createElement("strong");count.textContent=t.count;
+    row.append(name,count);list.append(row);
+  });
+  $("total-toss").textContent=records.length;
+  $("total-records").textContent=data.length;
+  $("total-matches").textContent=new Set(records.map(x=>x.match).filter(x=>x!=="मैच का नाम नहीं मिला")).size;
+  const body=$("toss-table");body.innerHTML="";
+  if(!records.length) body.innerHTML='<tr><td colspan="3" class="empty">पहचानने योग्य Toss संदेश नहीं मिला।</td></tr>';
+  records.slice(-12).reverse().forEach(x=>{
+    const tr=document.createElement("tr");
+    [x.match,"Toss "+x.winner,counts[norm(x.winner)]?.count||0].forEach(v=>{
+      const td=document.createElement("td");td.textContent=v;tr.append(td);
+    });
+    body.append(tr);
+  });
+  $("feed-total").textContent=records.length+" Toss संदेश";
+  const feed=$("feed");feed.innerHTML="";
+  records.slice(-8).reverse().forEach(x=>{
+    const row=document.createElement("div");row.className="feedrow";
+    const a=document.createElement("span");a.textContent=x.match;
+    const b=document.createElement("span");b.textContent="Toss "+x.winner;
+    const c=document.createElement("span");c.textContent=x.time?new Date(x.time).toLocaleTimeString("hi-IN",{hour:"2-digit",minute:"2-digit"}):"समय —";
+    row.append(a,b,c);feed.append(row);
+  });
+  if(!records.length) feed.textContent="अभी Toss संदेश नहीं मिले।";
+  $("tg-status").textContent="Telegram रिकॉर्ड: "+data.length+" | Toss संदेश: "+records.length+" | टीमों की संख्या: "+teams.length+" | चैनल नाम छिपा हुआ है।";
+}
+async function loadTelegram(){try{const r=await fetch(TELEGRAM_API);if(!r.ok)throw Error("HTTP "+r.status);const data=await r.json();if(!Array.isArray(data))throw Error("API का डेटा सूची के रूप में नहीं है");renderToss(data)}catch(e){$("tg-status").textContent="Telegram डेटा लोड नहीं हुआ: "+e.message+"। सर्वर/API जाँचें।";$("toss-table").innerHTML='<tr><td colspan="3" class="empty">Telegram सर्वर से डेटा नहीं मिला।</td></tr>'}}
+async function loadAll(){await Promise.all([loadUpcoming(),loadTelegram()])}
+loadAll();setInterval(loadAll,30000);
 </script>
-
-</body>
-</html>
+</body></html>
