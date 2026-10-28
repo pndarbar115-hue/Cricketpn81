@@ -125,7 +125,7 @@ document.addEventListener("DOMContentLoaded", () => {
     list.replaceChildren();
 
     try {
-      const response = await fetch("https://tg-parser-1-y99t.onrender.com/api/cricket/live");
+      const response = await fetch("https://tg-parser-b32a.onrender.com/api/cricket/live");
       if (!response.ok) throw new Error("HTTP " + response.status);
 
       const data = await response.json();
@@ -187,7 +187,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     status.textContent = "मैच लोड हो रहे हैं…";
 
-    const api = "https://tg-parser-1-y99t.onrender.com";
+    const api = "https://tg-parser-b32a.onrender.com";
     const instance = api + "/api/instances/1";
 
     function getTeam(value) {
@@ -375,7 +375,7 @@ document.addEventListener("DOMContentLoaded", () => {
     target.textContent = "Telegram संदेश लोड हो रहे हैं…";
 
     try {
-      const response = await fetch("https://tg-parser-1-y99t.onrender.com/api/instances/1/events");
+      const response = await fetch("https://tg-parser-b32a.onrender.com/api/instances/1/events");
       if (!response.ok) throw new Error("HTTP " + response.status);
 
       const data = await response.json();
